@@ -11,7 +11,7 @@ const initialValue = [
   },
 ];
 
-export default function Counter() {
+export default function Editor() {
   const [editor] = useState(() => withReact(createEditor()));
 
   return (

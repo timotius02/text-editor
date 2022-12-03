@@ -1,13 +1,11 @@
-import Counter from '../components/editor'
-import Image from 'next/image'
-import styles from './page.module.css'
+import Editor from "../components/editor";
 
 export default function Home() {
- return (
+  return (
     <main>
       <div>Test</div>
-
-      <Counter></Counter>
+      <div className="text-red">Hello</div>
+      <Editor></Editor>
     </main>
-  )
+  );
 }
