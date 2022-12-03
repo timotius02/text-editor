@@ -1,11 +1,9 @@
-import Editor from "../components/editor";
+import TextEditor from "../components/TextEditor";
 
 export default function Home() {
   return (
-    <main>
-      <div>Test</div>
-      <div className="text-red">Hello</div>
-      <Editor></Editor>
+    <main className="container mx-auto h-full">
+      <TextEditor></TextEditor>
     </main>
   );
 }
