@@ -14,3 +14,10 @@ html,
 body {
   background-color: #f3f3f3;
 }
+
+/* Workaround for text styles affectinv placeholder text */
+span[data-slate-placeholder="true"] {
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: none;
+}
