@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   createEditor,
   Descendant,
@@ -6,13 +6,23 @@ import {
   Editor,
   Transforms,
   Element,
+  NodeEntry,
+  BaseRange,
+  Node,
 } from "slate";
-import { Slate, Editable, withReact, RenderLeafProps } from "slate-react";
+import {
+  Slate,
+  Editable,
+  withReact,
+  RenderLeafProps,
+  RenderElementProps,
+} from "slate-react";
 import Leaf from "./Leaf";
-import { CustomEditor, FormattedText } from "../lib/slate";
+import { CodeBlockElement, CustomEditor } from "../lib/slate";
 import ElementSwitch from "./ElementSwitch";
 import { Toolbar } from "./Toolbar/Toolbar";
 import MarkButton from "./Toolbar/MarkButton";
+import Prism from "prismjs";
 
 const EditorActions = {
   isBoldMarkActive(editor: CustomEditor) {
@@ -51,6 +61,18 @@ const EditorActions = {
   },
 };
 
+const getLength = (token: string | Prism.Token): number => {
+  if (typeof token === "string") {
+    return token.length;
+  } else if (typeof token.content === "string") {
+    return token.content.length;
+  } else if (Array.isArray(token.content)) {
+    return token.content.reduce((l, t) => l + getLength(t), 0);
+  } else {
+    throw new Error("Code highlight cannot have non-text content");
+  }
+};
+
 const initialValue: Descendant[] = [
   {
     type: "paragraph",
@@ -62,12 +84,46 @@ const TextEditor = () => {
   const [editor] = useState(() => withReact(createEditor()));
 
   const renderElement = useCallback(
-    (props: any) => <ElementSwitch {...props} />,
+    (props: RenderElementProps) => <ElementSwitch {...props} />,
     []
   );
 
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     return <Leaf {...props} />;
+  }, []);
+
+  const decorate = useCallback(([node, path]: NodeEntry<Node>) => {
+    const ranges: BaseRange[] = [];
+    if (!Text.isText(node)) {
+      return ranges;
+    }
+    if (Element.isElement(node)) {
+      console.log(node.type);
+    }
+
+    if (Element.isElement(node) && node.type === "code-block") {
+      const tokens = Prism.tokenize(node.text, Prism.languages["javascript"]);
+      let start = 0;
+
+      for (const token of tokens) {
+        const length = getLength(token);
+        const end = start + length;
+
+        if (typeof token !== "string") {
+          ranges.push({
+            [token.type]: true,
+            anchor: { path, offset: start },
+            focus: { path, offset: end },
+          });
+        }
+
+        start = end;
+      }
+
+      return ranges;
+    } else {
+      return ranges;
+    }
   }, []);
 
   return (
@@ -84,6 +140,21 @@ const TextEditor = () => {
         renderLeaf={renderLeaf}
         placeholder="Type Something..."
         autoFocus={true}
+        decorate={decorate}
+        onKeyDown={(event) => {
+          if (event.key === "`" && event.ctrlKey) {
+            // Prevent the "`" from being inserted by default.
+            event.preventDefault();
+            // Otherwise, set the currently selected blocks type to "code".
+            Transforms.setNodes(
+              editor,
+              { type: "code-block", language: "javascript" },
+              { match: (n) => Editor.isBlock(editor, n) }
+            );
+          } else if (event.key === "0") {
+            console.log(editor);
+          }
+        }}
       />
     </Slate>
   );

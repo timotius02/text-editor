@@ -1,4 +1,9 @@
 import { BaseElementProps } from "../types/types";
+import Highlight, { defaultProps } from "prism-react-renderer";
+import { ChangeEvent, useCallback, useState } from "react";
+import { CustomEditor } from "../lib/slate";
+import { Transforms, Editor, Element } from "slate";
+import { useSlate } from "slate-react";
 
 // const getLength = (token: string | Prism.Token): number => {
 //   if (typeof token === "string") {
@@ -125,10 +130,54 @@ import { BaseElementProps } from "../types/types";
 //   );
 // };
 
+// function isCodeBlockActive(editor: CustomEditor) {
+//   const [match] = Editor.nodes(editor, {
+//     match: (n) => Element.isElement(n) && n.type === "code-block",
+//   });
+
+//   return !!match;
+// }
+
+// function toggleCodeBlock(editor: CustomEditor) {
+//   const isActive = isCodeBlockActive(editor);
+//   Transforms.setNodes(
+//     editor,
+//     { type: isActive ? undefined : "code-block" },
+//     { match: (n) => Editor.isBlock(editor, n) }
+//   );
+// }
+
 export default function CodeElement(props: BaseElementProps) {
+  const [language, setLanguage] = useState("js");
+  const editor = useSlate();
+  console.log(props);
+
+  const selectLanguage = (value: string) => {
+    Transforms.setNodes(
+      editor,
+      { language: value },
+      { match: (n) => Editor.isBlock(editor, n) }
+    );
+    setLanguage(value);
+  };
   return (
-    <pre {...props.attributes}>
-      <code className="bg-red-500">{props.children}</code>
-    </pre>
+    <>
+      <select
+        value={language}
+        style={{ float: "right" }}
+        onChange={(e) => selectLanguage(e.target.value)}
+      >
+        <option value="js">JavaScript</option>
+        <option value="css">CSS</option>
+        <option value="html">HTML</option>
+        <option value="python">Python</option>
+        <option value="sql">SQL</option>
+        <option value="java">Java</option>
+        <option value="php">PHP</option>
+      </select>
+      <pre {...props.attributes} className="bg-slate-700 p-2">
+        <code className="language-js">{props.children}</code>
+      </pre>
+    </>
   );
 }

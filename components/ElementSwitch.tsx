@@ -1,13 +1,13 @@
-import { DefaultElement } from "slate-react";
+import { DefaultElement, RenderElementProps } from "slate-react";
 import CodeElement from "./CodeElement";
 
-export default function ElementSwitch(props: any) {
-  const { attributes, children, ...rest } = props;
+export default function ElementSwitch(props: RenderElementProps) {
+  const { attributes, children } = props;
 
   switch (props.element.type) {
     case "block-quote":
       return <blockquote {...attributes}>{children}</blockquote>;
-    case "code":
+    case "code-block":
       return <CodeElement {...props} />;
     default:
       return <DefaultElement {...props} />;

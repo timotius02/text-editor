@@ -1,4 +1,5 @@
 import "./globals.css";
+import "prismjs/themes/prism-tomorrow.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 
