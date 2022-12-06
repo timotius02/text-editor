@@ -14,7 +14,9 @@ export const Button = ({
   <button>
     <span
       {...props}
-      className={`${className} p-2 ${active ? "text-black" : "text-gray-400"}`}
+      className={`${className} p-2 ${
+        active ? "text-bold font-bold" : "text-gray-400"
+      }`}
     />
   </button>
 );

@@ -16,7 +16,7 @@ export type BlockQuoteElement = {
 export type CodeBlockElement = {
   type: "code-block";
   language: string;
-  children: string;
+  children: { text: string }[];
 };
 
 export type CustomElement =
