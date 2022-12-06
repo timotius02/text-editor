@@ -34,7 +34,7 @@ export default function CodeElement(props: RenderElementProps) {
         <option value="php">PHP</option>
       </select>
       <pre {...props.attributes} className="bg-slate-700 p-2">
-        <code className="text-gray-300">{props.children}</code>
+        {props.children}
       </pre>
     </div>
   );

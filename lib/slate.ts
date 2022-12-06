@@ -15,14 +15,19 @@ export type BlockQuoteElement = {
 
 export type CodeBlockElement = {
   type: "code-block";
-  language: string;
-  children: { text: string }[];
+  language?: string;
+  children: CodeLineElement[];
 };
 
+export type CodeLineElement = {
+  type: "code-line";
+  children: FormattedText[];
+};
 export type CustomElement =
   | ParagraphElement
   | BlockQuoteElement
-  | CodeBlockElement;
+  | CodeBlockElement
+  | CodeLineElement;
 
 export type FormattedText = {
   text: string;

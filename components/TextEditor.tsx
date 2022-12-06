@@ -9,6 +9,7 @@ import {
   BaseRange,
   Node,
   Range,
+  Editor,
 } from "slate";
 import {
   Slate,
@@ -20,7 +21,7 @@ import {
 import { withHistory } from "slate-history";
 
 import Leaf from "./Leaf";
-import { CustomElement } from "../lib/slate";
+import { CodeBlockElement } from "../lib/slate";
 import ElementSwitch from "./ElementSwitch";
 import { Toolbar } from "./Toolbar/Toolbar";
 import MarkButton from "./Toolbar/MarkButton";
@@ -30,7 +31,13 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-php";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-java";
-import { getBlock, toggleBlock } from "../lib/utils";
+import {
+  deleteCodeBlock,
+  getBlock,
+  insertCodeBlock,
+  insertCodeLine,
+  isBlockActive,
+} from "../lib/utils";
 import BlockButton from "./Toolbar/BlockButton";
 
 const getLength = (token: string | Prism.Token): number => {
@@ -69,12 +76,12 @@ const TextEditor = () => {
     if (!Text.isText(node)) {
       return ranges;
     }
-    const codeBlock = getBlock(editor, "code-block", path);
 
-    if (codeBlock && codeBlock.type === "code-block") {
+    const codeBlock = getBlock<CodeBlockElement>(editor, "code-block", path);
+    if (codeBlock) {
       const tokens = Prism.tokenize(
-        node.text,
-        Prism.languages[codeBlock.language]
+        Node.string(node),
+        Prism.languages[codeBlock.language ?? "javascript"]
       );
       let start = 0;
 
@@ -101,14 +108,10 @@ const TextEditor = () => {
   const insertLineBreakForCode = () => {
     if (!editor.selection) return;
 
-    const res = getBlock(editor, "code-block");
+    const res = getBlock(editor, "code-line");
     if (!res) return;
 
-    Transforms.insertNodes(editor, {
-      type: "paragraph",
-      children: [{ text: "" }],
-    });
-
+    insertCodeLine(editor);
     return true;
   };
 
@@ -128,14 +131,7 @@ const TextEditor = () => {
       selection.anchor.offset === 0 &&
       Range.isCollapsed(selection)
     ) {
-      const node = editor.children[selection.anchor.path[0]];
-      if (
-        Element.isElement(node) &&
-        node.type === "code-block" &&
-        node.children.length === 1
-      ) {
-        toggleBlock(editor, "code-block");
-      }
+      deleteCodeBlock(editor);
       deleteBackward(unit);
     } else {
       deleteBackward(unit);
@@ -163,7 +159,13 @@ const TextEditor = () => {
         onKeyDown={(event) => {
           if (event.key === "`" && event.ctrlKey) {
             event.preventDefault();
-            toggleBlock(editor, "code-block");
+            insertCodeBlock(editor);
+          } else if (
+            event.key === "Tab" &&
+            isBlockActive(editor, "code-block")
+          ) {
+            event.preventDefault();
+            Editor.insertText(editor, "  ");
           }
         }}
       />
