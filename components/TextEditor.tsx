@@ -1,15 +1,14 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   createEditor,
   Descendant,
-  Text,
-  Editor,
-  Transforms,
   Element,
+  Text,
+  Transforms,
   NodeEntry,
   BaseRange,
   Node,
-  Path,
+  Range,
 } from "slate";
 import {
   Slate,
@@ -21,7 +20,7 @@ import {
 import { withHistory } from "slate-history";
 
 import Leaf from "./Leaf";
-import { CodeBlockElement, CustomEditor } from "../lib/slate";
+import { CustomElement } from "../lib/slate";
 import ElementSwitch from "./ElementSwitch";
 import { Toolbar } from "./Toolbar/Toolbar";
 import MarkButton from "./Toolbar/MarkButton";
@@ -31,38 +30,8 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-php";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-java";
-import { getBlock } from "../lib/utils";
+import { getBlock, toggleBlock } from "../lib/utils";
 import BlockButton from "./Toolbar/BlockButton";
-
-// const EditorActions = {
-//   getCodeBlock(editor: CustomEditor, path?: Path): CodeBlockElement | null {
-//     const [match] = Editor.nodes(editor, {
-//       match: (n) => Element.isElement(n) && n.type === "code-block",
-//       at: path,
-//     });
-
-//     if (
-//       match &&
-//       Element.isElement(match[0]) &&
-//       match[0].type === "code-block"
-//     ) {
-//       return match[0];
-//     } else return null;
-//   },
-//   toggleCodeBlock(editor: CustomEditor, path?: Path) {
-//     const [match] = Editor.nodes(editor, {
-//       match: (n) => Element.isElement(n) && n.type === "code-block",
-//       at: path,
-//     });
-//     Transforms.setNodes(
-//       editor,
-//       match
-//         ? { type: "paragraph" }
-//         : { type: "code-block", language: "javascript" },
-//       { match: (n) => Editor.isBlock(editor, n) }
-//     );
-//   },
-// };
 
 const getLength = (token: string | Prism.Token): number => {
   if (typeof token === "string") {
@@ -80,11 +49,6 @@ const initialValue: Descendant[] = [
   {
     type: "paragraph",
     children: [{ text: "" }],
-  },
-  {
-    type: "code-block",
-    language: "js",
-    children: [{ text: "const t = hello" }],
   },
 ];
 
@@ -153,13 +117,30 @@ const TextEditor = () => {
     insertBreak();
   };
 
-  function toggleCodeBlock(
-    editor: import("slate").BaseEditor &
-      import("slate-react").ReactEditor &
-      import("slate-history").HistoryEditor
-  ) {
-    throw new Error("Function not implemented.");
-  }
+  // Handle backspace deletion of empty code block
+  const { deleteBackward } = editor;
+  editor.deleteBackward = (unit) => {
+    const { selection } = editor;
+
+    if (
+      selection &&
+      selection.focus.offset === 0 &&
+      selection.anchor.offset === 0 &&
+      Range.isCollapsed(selection)
+    ) {
+      const node = editor.children[selection.anchor.path[0]];
+      if (
+        Element.isElement(node) &&
+        node.type === "code-block" &&
+        node.children.length === 1
+      ) {
+        toggleBlock(editor, "code-block");
+      }
+      deleteBackward(unit);
+    } else {
+      deleteBackward(unit);
+    }
+  };
 
   return (
     <Slate editor={editor} value={initialValue}>
@@ -182,7 +163,7 @@ const TextEditor = () => {
         onKeyDown={(event) => {
           if (event.key === "`" && event.ctrlKey) {
             event.preventDefault();
-            toggleCodeBlock(editor);
+            toggleBlock(editor, "code-block");
           }
         }}
       />
