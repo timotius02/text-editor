@@ -1,5 +1,5 @@
 import { Path, Element, Editor, Range, Transforms, Text } from "slate";
-import { CustomEditor, CustomElement } from "./slate";
+import { CustomEditor, CustomElement, FormattedText } from "./slate";
 
 /**
  * Returns the nearest containing block with `type`
@@ -63,15 +63,20 @@ export function toggleBlock<T extends CustomElement>(
   type: T["type"],
   path?: Path
 ) {
-  const [match] = Editor.nodes(editor, {
-    match: (n) => Element.isElement(n) && n.type === type,
-    at: path,
-  });
-  Transforms.setNodes(
-    editor,
-    match ? { type: "paragraph" } : _activateElement(type),
-    { match: (n) => Editor.isBlock(editor, n) }
-  );
+  if (type === "code-block") {
+    toggleCodeBlock(editor);
+    return;
+  } else if (!isBlockActive(editor, "code-block")) {
+    const [match] = Editor.nodes(editor, {
+      match: (n) => Element.isElement(n) && n.type === type,
+      at: path,
+    });
+    Transforms.setNodes(
+      editor,
+      match ? { type: "paragraph" } : _activateElement(type),
+      { match: (n) => Editor.isBlock(editor, n) }
+    );
+  }
 }
 
 /**
@@ -102,11 +107,16 @@ export const insertCodeBlock = (editor: CustomEditor) => {
   const { selection } = editor;
   if (!selection || isBlockActive(editor, "code-block")) return;
 
-  // Adds an extra line before code block if we're at the start
-  const path = Editor.above(editor)?.[1];
-  if (!(path && Editor.isStart(editor, selection.focus, path))) {
-    editor.insertBreak();
-  }
+  // TODO: Make it be able to detect if it's the first line and add line,
+  // before the code block
+
+  // if (!Editor.above(editor) && !Editor.before(editor, selection)) {
+  //   Transforms.insertNodes(
+  //     editor,
+  //     { type: "paragraph", children: [{ text: "" }] },
+  //     { at: [0] }
+  //   );
+  // }
 
   wrapCodeBlock(editor);
 };
@@ -118,8 +128,8 @@ export const insertCodeBlock = (editor: CustomEditor) => {
 export function wrapCodeBlock(editor: CustomEditor) {
   Transforms.setNodes(
     editor,
-    { type: "code-line", children: [] },
-    { split: true }
+    { type: "code-line", children: [] }
+    // { split: false }
   );
   Transforms.wrapNodes(editor, {
     type: "code-block",
@@ -156,20 +166,29 @@ export const insertCodeLine = (editor: CustomEditor) => {
 };
 
 /**
- * Delete an empty code block. Used in handling backspace in code-block
+ * Chek if a mark is currently active on a text
  * @param editor
+ * @param format
+ * @returns boolean
  */
-export const deleteCodeBlock = (editor: CustomEditor) => {
-  if (!editor.selection) return;
+export const isMarkActive = (editor: CustomEditor, format: string) => {
+  const marks = Editor.marks(editor);
+  return marks
+    ? marks[format as keyof Omit<FormattedText, "text">] === true
+    : false;
+};
 
-  const node = editor.children[editor.selection.anchor.path[0]];
-  if (
-    Element.isElement(node) &&
-    node.type === "code-block" &&
-    node.children.length === 1
-  ) {
-    Transforms.removeNodes(editor, {
-      match: (node) => Element.isElement(node) && node.type === "code-block",
-    });
+/**
+ * Toggles a mark.
+ * @param editor
+ * @param format type of mark
+ */
+export const toggleMark = (editor: CustomEditor, format: string) => {
+  const isActive = isMarkActive(editor, format);
+
+  if (isActive) {
+    Editor.removeMark(editor, format);
+  } else {
+    Editor.addMark(editor, format, true);
   }
 };

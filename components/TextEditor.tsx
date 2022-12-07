@@ -30,11 +30,12 @@ import "prismjs/components/prism-php";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-java";
 import {
-  deleteCodeBlock,
   getBlock,
   insertCodeLine,
   isBlockActive,
   toggleCodeBlock,
+  toggleMark,
+  unwrapCodeBlock,
 } from "../lib/utils";
 import BlockButton from "./Toolbar/BlockButton";
 
@@ -129,7 +130,7 @@ const TextEditor = () => {
       selection.anchor.offset === 0 &&
       Range.isCollapsed(selection)
     ) {
-      deleteCodeBlock(editor);
+      unwrapCodeBlock(editor);
       deleteBackward(unit);
     } else {
       deleteBackward(unit);
@@ -142,6 +143,7 @@ const TextEditor = () => {
         <MarkButton format="bold" icon="format_bold" />
         <MarkButton format="italic" icon="format_italic" />
         <MarkButton format="underline" icon="format_underlined" />
+        <BlockButton format="block-quote" icon="format_quote" />
         <BlockButton format="code-block" icon="code" />
       </Toolbar>
       <Editable
@@ -153,9 +155,22 @@ const TextEditor = () => {
         spellCheck={false}
         decorate={decorate}
         onKeyDown={(event) => {
+          if (event.ctrlKey) {
+            if (event.key === "`") {
+              event.preventDefault();
+              toggleCodeBlock(editor);
+            } else if (event.key === "b") {
+              event.preventDefault();
+              toggleMark(editor, "bold");
+            } else if (event.key === "i") {
+              event.preventDefault();
+              toggleMark(editor, "italic");
+            } else if (event.key === "u") {
+              event.preventDefault();
+              toggleMark(editor, "underline");
+            }
+          }
           if (event.key === "`" && event.ctrlKey) {
-            event.preventDefault();
-            toggleCodeBlock(editor);
           } else if (
             event.key === "Tab" &&
             isBlockActive(editor, "code-block")

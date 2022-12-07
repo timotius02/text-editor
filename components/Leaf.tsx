@@ -6,8 +6,8 @@ const Leaf = (props: any) => {
     <span
       {...props.attributes}
       style={{
-        fontWeight: props.leaf.bold ? "bold" : "normal",
-        fontStyle: props.leaf.italic ? "italic" : "normal",
+        fontWeight: props.leaf.bold ? "bold" : "inherit",
+        fontStyle: props.leaf.italic ? "italic" : "inherit",
         textDecoration: props.leaf.underline ? "underline" : "initial",
         fontFamily: props.leaf.code ? "monospace" : "inherit",
         backgroundColor: props.leaf.code ? "#eee" : "inherit",

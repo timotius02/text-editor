@@ -1,4 +1,5 @@
 import { DefaultElement, RenderElementProps } from "slate-react";
+import BlockQuoteElement from "./BlockQuoteElement";
 import CodeElement from "./CodeElement";
 import CodeLineElement from "./CodeLineElement";
 
@@ -7,7 +8,7 @@ export default function ElementSwitch(props: RenderElementProps) {
 
   switch (props.element.type) {
     case "block-quote":
-      return <blockquote {...attributes}>{children}</blockquote>;
+      return <BlockQuoteElement {...props} />;
     case "code-block":
       return <CodeElement {...props} />;
     case "code-line":
