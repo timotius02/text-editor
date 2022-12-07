@@ -2,9 +2,7 @@ import { useState, useCallback } from "react";
 import {
   createEditor,
   Descendant,
-  Element,
   Text,
-  Transforms,
   NodeEntry,
   BaseRange,
   Node,
@@ -34,9 +32,9 @@ import "prismjs/components/prism-java";
 import {
   deleteCodeBlock,
   getBlock,
-  insertCodeBlock,
   insertCodeLine,
   isBlockActive,
+  toggleCodeBlock,
 } from "../lib/utils";
 import BlockButton from "./Toolbar/BlockButton";
 
@@ -144,8 +142,6 @@ const TextEditor = () => {
         <MarkButton format="bold" icon="format_bold" />
         <MarkButton format="italic" icon="format_italic" />
         <MarkButton format="underline" icon="format_underlined" />
-        {/* <MarkButton format="code" icon="code" /> */}
-
         <BlockButton format="code-block" icon="code" />
       </Toolbar>
       <Editable
@@ -159,7 +155,7 @@ const TextEditor = () => {
         onKeyDown={(event) => {
           if (event.key === "`" && event.ctrlKey) {
             event.preventDefault();
-            insertCodeBlock(editor);
+            toggleCodeBlock(editor);
           } else if (
             event.key === "Tab" &&
             isBlockActive(editor, "code-block")
