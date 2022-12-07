@@ -126,11 +126,7 @@ export const insertCodeBlock = (editor: CustomEditor) => {
  * @param editor
  */
 export function wrapCodeBlock(editor: CustomEditor) {
-  Transforms.setNodes(
-    editor,
-    { type: "code-line", children: [] }
-    // { split: false }
-  );
+  Transforms.setNodes(editor, { type: "code-line", children: [] });
   Transforms.wrapNodes(editor, {
     type: "code-block",
     children: [],

@@ -1,5 +1,7 @@
 # [WIP] Text Editor written with Slate.js
 
+### Demo: https://text-editor-gold.vercel.app/
+
 ## Features
 
 - UI menu for Editing
